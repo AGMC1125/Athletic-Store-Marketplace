@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
   Store, ExternalLink, Save, MapPin, Phone, Image as ImageIcon,
-  AlertCircle, CheckCircle2, Info, Building2, MapPinned, Eye
+  AlertCircle, CheckCircle2, Info, Building2, MapPinned, Eye,
+  Instagram, Facebook, Youtube, Twitter, Globe, Music2, Share2
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button, Input, ImageUpload } from '../../../components/ui'
@@ -47,6 +48,14 @@ const schema = z.object({
   logo_url:   z.string().optional().or(z.literal('')),
   banner_url:  z.string().optional().or(z.literal('')),
   is_active:  z.boolean().optional(),
+  social_links: z.object({
+    instagram: z.string().optional().or(z.literal('')),
+    facebook:  z.string().optional().or(z.literal('')),
+    tiktok:    z.string().optional().or(z.literal('')),
+    youtube:   z.string().optional().or(z.literal('')),
+    twitter:   z.string().optional().or(z.literal('')),
+    website:   z.string().optional().or(z.literal('')),
+  }).optional(),
 })
 
 /**
@@ -73,6 +82,16 @@ function Alert({ variant = 'info', icon: Icon, title, children, className = '' }
   )
 }
 
+// Redes sociales soportadas
+const SOCIAL_NETWORKS = [
+  { key: 'instagram', label: 'Instagram', Icon: Instagram, placeholder: 'https://instagram.com/tu_tienda',  color: '#E1306C' },
+  { key: 'facebook',  label: 'Facebook',  Icon: Facebook,  placeholder: 'https://facebook.com/tu_tienda',  color: '#1877F2' },
+  { key: 'tiktok',    label: 'TikTok',    Icon: Music2,    placeholder: 'https://tiktok.com/@tu_tienda',   color: '#69C9D0' },
+  { key: 'youtube',   label: 'YouTube',   Icon: Youtube,   placeholder: 'https://youtube.com/@tu_canal',   color: '#FF0000' },
+  { key: 'twitter',   label: 'Twitter/X', Icon: Twitter,   placeholder: 'https://twitter.com/tu_tienda',   color: '#1DA1F2' },
+  { key: 'website',   label: 'Sitio Web', Icon: Globe,     placeholder: 'https://tu-sitio-web.com',        color: '#D4AF37' },
+]
+
 function StoreFormContent() {
   const { user, store, setStore } = useAuthStore()
   const { addToast } = useUIStore()
@@ -95,6 +114,7 @@ function StoreFormContent() {
       logo_url:   '',
       banner_url: '',
       is_active:  true,
+      social_links: { instagram: '', facebook: '', tiktok: '', youtube: '', twitter: '', website: '' },
     },
   })
 
@@ -112,6 +132,14 @@ function StoreFormContent() {
         logo_url:    store.logo_url    ?? '',
         banner_url:  store.banner_url  ?? '',
         is_active:   store.is_active   ?? true,
+        social_links: {
+          instagram: store.social_links?.instagram ?? '',
+          facebook:  store.social_links?.facebook  ?? '',
+          tiktok:    store.social_links?.tiktok    ?? '',
+          youtube:   store.social_links?.youtube   ?? '',
+          twitter:   store.social_links?.twitter   ?? '',
+          website:   store.social_links?.website   ?? '',
+        },
       })
     }
   }, [store, reset])
@@ -380,6 +408,34 @@ function StoreFormContent() {
                 <p>• Se comprime automáticamente antes de subir</p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Redes Sociales */}
+        <div className="card-base p-6 space-y-5">
+          <div className="flex items-center gap-2 pb-3 border-b border-white/5">
+            <Share2 size={20} className="text-brand-gold" />
+            <h2 className="text-lg font-bold text-content-primary">Redes Sociales</h2>
+            <span className="ml-auto text-xs text-content-muted">Opcional</span>
+          </div>
+          <p className="text-sm text-content-secondary -mt-1">
+            Agrega los perfiles que quieras mostrar en tu tienda pública. Los clientes podrán seguirte y generar más confianza.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {SOCIAL_NETWORKS.map(({ key, label, Icon, placeholder, color }) => (
+              <div key={key} className="space-y-1.5">
+                <label className="flex items-center gap-2 text-sm font-medium text-content-secondary">
+                  <Icon size={15} style={{ color }} />
+                  {label}
+                </label>
+                <input
+                  type="url"
+                  placeholder={placeholder}
+                  {...register(`social_links.${key}`)}
+                  className="w-full bg-brand-black-soft border border-white/10 text-content-primary placeholder-content-muted rounded-lg px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-gold/50 transition-colors"
+                />
+              </div>
+            ))}
           </div>
         </div>
 

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   MapPin, Phone, MessageCircle, Package, Store,
   ArrowLeft, AlertTriangle,
+  Instagram, Facebook, Youtube, Twitter, Globe, Music2, ExternalLink,
 } from 'lucide-react'
 import { Badge, Spinner } from '../../components/ui'
 import { storesService } from '../../services/storesService'
@@ -75,6 +76,16 @@ function ProductSkeleton() {
 }
 
 // ── Página principal ──────────────────────────────────────
+// ── Config redes sociales ──────────────────────────────────────────
+const SOCIAL_CONFIG = {
+  instagram: { Icon: Instagram, label: 'Instagram', color: '#E1306C' },
+  facebook:  { Icon: Facebook,  label: 'Facebook',  color: '#1877F2' },
+  tiktok:    { Icon: Music2,    label: 'TikTok',    color: '#69C9D0' },
+  youtube:   { Icon: Youtube,   label: 'YouTube',   color: '#FF0000' },
+  twitter:   { Icon: Twitter,   label: 'Twitter/X', color: '#1DA1F2' },
+  website:   { Icon: Globe,     label: 'Sitio Web', color: '#D4AF37' },
+}
+
 function StoreProfilePage() {
   const { slug } = useParams()
 
@@ -243,6 +254,34 @@ function StoreProfilePage() {
                 </p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Redes sociales */}
+        {store.social_links && Object.values(store.social_links).some(Boolean) && (
+          <div className="card-base p-5">
+            <p className="text-xs text-content-muted uppercase tracking-wider mb-4">Encuéntranos en</p>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(store.social_links).map(([key, url]) => {
+                if (!url) return null
+                const cfg = SOCIAL_CONFIG[key]
+                if (!cfg) return null
+                const { Icon, label, color } = cfg
+                return (
+                  <a
+                    key={key}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-sm text-content-secondary hover:border-white/25 hover:bg-white/[0.04] active:scale-95 transition-all group"
+                  >
+                    <Icon size={16} style={{ color }} className="shrink-0" />
+                    <span className="font-medium group-hover:text-content-primary transition-colors">{label}</span>
+                    <ExternalLink size={11} className="text-content-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </a>
+                )
+              })}
+            </div>
           </div>
         )}
 
