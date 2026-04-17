@@ -20,7 +20,7 @@ export const PLAN_LIMITS = {
 
 export const PLAN_PRICES = {
   [PLANS.FREE]: 0,
-  [PLANS.PRO]:  299,   // MXN / mes
+  [PLANS.PRO]:  200,   // MXN / mes
 }
 
 export const PLAN_MAX_VARIANT_IMAGES = {

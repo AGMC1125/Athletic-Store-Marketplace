@@ -346,10 +346,29 @@ function StepConfirmation({ orders }) {
   )
 }
 
+function groupItemsByStore(items) {
+  const groups = {}
+  for (const item of items) {
+    if (!groups[item.storeId]) {
+      groups[item.storeId] = {
+        storeId:   item.storeId,
+        storeName: item.storeName,
+        storeSlug: item.storeSlug,
+        items:     [],
+        subtotal:  0,
+      }
+    }
+    groups[item.storeId].items.push(item)
+    groups[item.storeId].subtotal += item.unitPrice * item.quantity
+  }
+  return Object.values(groups)
+}
+
 // ── Página Checkout ───────────────────────────────────────────────────────────
 function CheckoutPage() {
   const navigate = useNavigate()
-  const { items, itemsByStore, clearCart } = useCartStore()
+  const { items, clearCart } = useCartStore()
+  const itemsByStore = groupItemsByStore(items)
   const [step, setStep]         = useState(1)
   const [customerData, setCustomerData] = useState(null)
   const [createdOrders, setCreatedOrders] = useState([])

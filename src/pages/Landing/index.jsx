@@ -54,9 +54,9 @@ function useCountUp(target, duration = 1800, inView = false) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Componente: Canvas Three.js — red de partículas doradas
+// Componente: Canvas Three.js — esfera 3D con partículas orbitales
 // ─────────────────────────────────────────────────────────────
-function ParticleCanvas() {
+function HeroCanvas() {
   const mountRef = useRef(null)
 
   useEffect(() => {
@@ -75,119 +75,171 @@ function ParticleCanvas() {
 
     // Scene + Camera
     const scene  = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 1000)
-    camera.position.z = 30
+    const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 500)
+    camera.position.set(0, 0, 20)
 
-    // ── Partículas ──
-    const PARTICLE_COUNT = 120
-    const positions = new Float32Array(PARTICLE_COUNT * 3)
-    const velocities = []
+    // Fog
+    scene.fog = new THREE.FogExp2(0x000000, 0.014)
 
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      positions[i * 3]     = (Math.random() - 0.5) * 80
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 50
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 20
-      velocities.push({
-        x: (Math.random() - 0.5) * 0.04,
-        y: (Math.random() - 0.5) * 0.04,
-        z: 0,
+    // ── Icosaedro central (wireframe + sólido interior) ──
+    const icoGeo    = new THREE.IcosahedronGeometry(4.2, 1)
+    const icoWireMat = new THREE.MeshBasicMaterial({
+      color: 0xD4AF37, wireframe: true, transparent: true, opacity: 0.22,
+    })
+    const icoWire = new THREE.Mesh(icoGeo, icoWireMat)
+    scene.add(icoWire)
+
+    const icoInnerMat = new THREE.MeshPhongMaterial({
+      color: 0x0d0900,
+      emissive: 0xD4AF37,
+      emissiveIntensity: 0.06,
+      transparent: true,
+      opacity: 0.55,
+      shininess: 60,
+    })
+    const icoInner = new THREE.Mesh(icoGeo, icoInnerMat)
+    icoInner.scale.setScalar(0.95)
+    scene.add(icoInner)
+
+    // ── Segundo icosaedro exterior lento (mayor tamaño, más transparente) ──
+    const icoOuterGeo = new THREE.IcosahedronGeometry(6.0, 1)
+    const icoOuterMat = new THREE.MeshBasicMaterial({
+      color: 0xB8960C, wireframe: true, transparent: true, opacity: 0.07,
+    })
+    const icoOuter = new THREE.Mesh(icoOuterGeo, icoOuterMat)
+    scene.add(icoOuter)
+
+    // ── Shell de partículas orbitales (esfera) ──
+    const ORBIT_N = 100
+    const orbitGeo = new THREE.BufferGeometry()
+    const orbitPos = new Float32Array(ORBIT_N * 3)
+    const orbitData = []
+    for (let i = 0; i < ORBIT_N; i++) {
+      // distribución esférica uniforme (Fibonacci)
+      const golden = Math.PI * (3 - Math.sqrt(5))
+      const y      = 1 - (i / (ORBIT_N - 1)) * 2
+      const radius = Math.sqrt(1 - y * y)
+      const theta  = golden * i
+      const r = 8.5 + (Math.random() - 0.5) * 1.4
+      orbitPos[i * 3]     = Math.cos(theta) * radius * r
+      orbitPos[i * 3 + 1] = y * r
+      orbitPos[i * 3 + 2] = Math.sin(theta) * radius * r
+      orbitData.push({ baseTheta: theta, baseRadius: radius, r, y, speed: 0.004 + Math.random() * 0.006 })
+    }
+    orbitGeo.setAttribute('position', new THREE.BufferAttribute(orbitPos, 3))
+    const orbitMat = new THREE.PointsMaterial({
+      color: 0xF5D76E, size: 0.1, transparent: true, opacity: 0.9, sizeAttenuation: true,
+    })
+    const orbitCloud = new THREE.Points(orbitGeo, orbitMat)
+    scene.add(orbitCloud)
+
+    // ── Stars (fondo) ──
+    const STAR_N  = 260
+    const starPos = new Float32Array(STAR_N * 3)
+    for (let i = 0; i < STAR_N; i++) {
+      starPos[i * 3]     = (Math.random() - 0.5) * 160
+      starPos[i * 3 + 1] = (Math.random() - 0.5) * 100
+      starPos[i * 3 + 2] = (Math.random() - 0.5) * 80 - 20
+    }
+    const starGeo = new THREE.BufferGeometry()
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3))
+    const starMat = new THREE.PointsMaterial({
+      color: 0xD4AF37, size: 0.07, transparent: true, opacity: 0.28,
+    })
+    scene.add(new THREE.Points(starGeo, starMat))
+
+    // ── Mini octaedros flotantes ──
+    const floaters = []
+    for (let i = 0; i < 10; i++) {
+      const oct = new THREE.OctahedronGeometry(0.18 + Math.random() * 0.28, 0)
+      const mat = new THREE.MeshBasicMaterial({
+        color: 0xD4AF37, wireframe: true, transparent: true, opacity: 0.35 + Math.random() * 0.35,
       })
+      const mesh = new THREE.Mesh(oct, mat)
+      mesh.position.set(
+        (Math.random() - 0.5) * 26,
+        (Math.random() - 0.5) * 18,
+        (Math.random() - 0.5) * 10 - 3,
+      )
+      mesh.userData = {
+        rx: (Math.random() - 0.5) * 0.018,
+        ry: (Math.random() - 0.5) * 0.018,
+        floatAmp: 0.008 + Math.random() * 0.012,
+        floatFreq: 0.6 + Math.random() * 0.8,
+        phase: Math.random() * Math.PI * 2,
+      }
+      scene.add(mesh)
+      floaters.push(mesh)
     }
 
-    const geo = new THREE.BufferGeometry()
-    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    // ── Luces ──
+    scene.add(new THREE.AmbientLight(0x111111, 2))
 
-    const mat = new THREE.PointsMaterial({
-      color: 0xD4AF37,
-      size: 0.35,
-      transparent: true,
-      opacity: 0.8,
-      sizeAttenuation: true,
-    })
+    const goldLight = new THREE.PointLight(0xD4AF37, 3, 35)
+    goldLight.position.set(5, 3, 10)
+    scene.add(goldLight)
 
-    const points = new THREE.Points(geo, mat)
-    scene.add(points)
+    const rimLight = new THREE.PointLight(0xFFEEAA, 1.2, 28)
+    rimLight.position.set(-10, 8, 4)
+    scene.add(rimLight)
 
-    // ── Líneas entre partículas cercanas ──
-    const lineMat = new THREE.LineBasicMaterial({
-      color: 0xD4AF37,
-      transparent: true,
-      opacity: 0.12,
-    })
-
-    let linesMesh = null
-
-    function buildLines() {
-      const pos = geo.attributes.position.array
-      const lineVerts = []
-      const MAX_DIST = 14
-
-      for (let i = 0; i < PARTICLE_COUNT; i++) {
-        for (let j = i + 1; j < PARTICLE_COUNT; j++) {
-          const dx = pos[i*3]   - pos[j*3]
-          const dy = pos[i*3+1] - pos[j*3+1]
-          const dz = pos[i*3+2] - pos[j*3+2]
-          const dist = Math.sqrt(dx*dx + dy*dy + dz*dz)
-          if (dist < MAX_DIST) {
-            lineVerts.push(pos[i*3], pos[i*3+1], pos[i*3+2])
-            lineVerts.push(pos[j*3], pos[j*3+1], pos[j*3+2])
-          }
-        }
-      }
-
-      if (linesMesh) {
-        scene.remove(linesMesh)
-        linesMesh.geometry.dispose()
-      }
-      const lineGeo = new THREE.BufferGeometry()
-      lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(lineVerts), 3))
-      linesMesh = new THREE.LineSegments(lineGeo, lineMat)
-      scene.add(linesMesh)
-    }
-
-    buildLines()
-
-    // ── Mouse parallax ──
-    const mouse = { x: 0, y: 0 }
+    // ── Mouse ──
+    const mouse = { x: 0, y: 0, tx: 0, ty: 0 }
     const onMouseMove = (e) => {
-      mouse.x = (e.clientX / window.innerWidth  - 0.5) * 0.6
-      mouse.y = (e.clientY / window.innerHeight - 0.5) * 0.6
+      mouse.tx = (e.clientX / window.innerWidth  - 0.5) * 2
+      mouse.ty = (e.clientY / window.innerHeight - 0.5) * 2
     }
     window.addEventListener('mousemove', onMouseMove)
 
-    // ── Animación ──
-    let frameId
-    let tick = 0
+    // ── Loop ──
+    let frameId, t = 0
 
     const animate = () => {
       frameId = requestAnimationFrame(animate)
-      tick++
+      t += 0.008
 
-      const pos = geo.attributes.position.array
-      for (let i = 0; i < PARTICLE_COUNT; i++) {
-        pos[i*3]     += velocities[i].x
-        pos[i*3 + 1] += velocities[i].y
+      // Smooth mouse
+      mouse.x += (mouse.tx - mouse.x) * 0.05
+      mouse.y += (mouse.ty - mouse.y) * 0.05
 
-        if (Math.abs(pos[i*3])     > 40) velocities[i].x *= -1
-        if (Math.abs(pos[i*3 + 1]) > 25) velocities[i].y *= -1
-      }
-      geo.attributes.position.needsUpdate = true
+      // Icosaedro central
+      icoWire.rotation.x = t * 0.18
+      icoWire.rotation.y = t * 0.28
+      icoInner.rotation.copy(icoWire.rotation)
+      const pulse = 1 + Math.sin(t * 1.8) * 0.022
+      icoWire.scale.setScalar(pulse)
+      icoInner.scale.setScalar(pulse * 0.95)
 
-      // Rebuild lines every 3 frames
-      if (tick % 3 === 0) buildLines()
+      // Icosaedro exterior (contra-rotación lenta)
+      icoOuter.rotation.x = -t * 0.06
+      icoOuter.rotation.y =  t * 0.09
+      icoOuter.rotation.z =  t * 0.04
 
-      // Camera gentle parallax
-      camera.position.x += (mouse.x * 4 - camera.position.x) * 0.04
-      camera.position.y += (-mouse.y * 2 - camera.position.y) * 0.04
+      // Shell orbital completo rota
+      orbitCloud.rotation.y = t * 0.07
+      orbitCloud.rotation.x = t * 0.035
 
-      // Slow rotation of particle cloud
-      points.rotation.z += 0.0004
+      // Luz dorada sigue al mouse
+      goldLight.position.x += (mouse.x * 9  - goldLight.position.x) * 0.07
+      goldLight.position.y += (-mouse.y * 6  - goldLight.position.y) * 0.07
+
+      // Mini octaedros
+      floaters.forEach((f) => {
+        f.rotation.x += f.userData.rx
+        f.rotation.y += f.userData.ry
+        f.position.y += Math.sin(t * f.userData.floatFreq + f.userData.phase) * f.userData.floatAmp
+      })
+
+      // Camera parallax suave
+      camera.position.x += (mouse.x * 2.5 - camera.position.x) * 0.035
+      camera.position.y += (-mouse.y * 1.8 - camera.position.y) * 0.035
+      camera.lookAt(0, 0, 0)
 
       renderer.render(scene, camera)
     }
     animate()
 
-    // ── Resize ──
+    // Resize
     const onResize = () => {
       const W2 = container.clientWidth
       const H2 = container.clientHeight
@@ -202,9 +254,7 @@ function ParticleCanvas() {
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('resize', onResize)
       renderer.dispose()
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement)
-      }
+      if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
   }, [])
 
@@ -260,17 +310,18 @@ function HeroSection() {
   return (
     <section className="relative overflow-hidden min-h-screen flex items-center">
       {/* Three.js background */}
-      <ParticleCanvas />
+      <HeroCanvas />
 
-      {/* Gradient base */}
-      <div className="absolute inset-0 bg-gradient-to-b from-brand-black via-brand-black/95 to-brand-black" style={{ zIndex: 1 }} />
+      {/* Top + bottom fades — NO centro, para que la animación sea visible */}
+      <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-brand-black to-transparent pointer-events-none" style={{ zIndex: 1 }} />
+      <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-brand-black to-transparent pointer-events-none" style={{ zIndex: 1 }} />
 
-      {/* Radial glow */}
+      {/* Radial glow dorado en el centro */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           zIndex: 1,
-          background: 'radial-gradient(ellipse 70% 50% at 50% 50%, rgba(212,175,55,0.06) 0%, transparent 70%)',
+          background: 'radial-gradient(ellipse 65% 60% at 50% 48%, rgba(212,175,55,0.08) 0%, rgba(212,175,55,0.02) 55%, transparent 78%)',
         }}
       />
 
@@ -388,7 +439,7 @@ function HeroSection() {
 
         {/* Scroll indicator */}
         <div
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
+          className="absolute bottom-15 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1"
           style={{
             opacity: loaded ? 0.5 : 0,
             transition: 'opacity 1s ease 1200ms',
@@ -809,7 +860,7 @@ function PlansSection() {
     {
       name: 'Pro',
       badge: 'Recomendado',
-      price: '299',
+      price: '200',
       period: 'MXN / mes',
       description: 'Para tiendas que quieren crecer y destacar',
       features: [

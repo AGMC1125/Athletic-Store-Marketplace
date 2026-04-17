@@ -124,10 +124,30 @@ function StoreGroup({ group }) {
 }
 
 // ── Página Carrito ─────────────────────────────────────────────────────────────
+function groupItemsByStore(items) {
+  const groups = {}
+  for (const item of items) {
+    if (!groups[item.storeId]) {
+      groups[item.storeId] = {
+        storeId:   item.storeId,
+        storeName: item.storeName,
+        storeSlug: item.storeSlug,
+        items:     [],
+        subtotal:  0,
+      }
+    }
+    groups[item.storeId].items.push(item)
+    groups[item.storeId].subtotal += item.unitPrice * item.quantity
+  }
+  return Object.values(groups)
+}
+
 function CartPage() {
   const navigate = useNavigate()
-  const { items, totalPrice, itemsByStore, clearCart } = useCartStore()
-  const totalItems = items.reduce((s, i) => s + i.quantity, 0)
+  const { items, clearCart } = useCartStore()
+  const totalItems   = items.reduce((s, i) => s + i.quantity, 0)
+  const totalPrice   = items.reduce((s, i) => s + i.unitPrice * i.quantity, 0)
+  const itemsByStore = groupItemsByStore(items)
 
   if (items.length === 0) {
     return (

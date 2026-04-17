@@ -46,7 +46,7 @@ function Footer() {
             <h3 className="text-sm font-semibold text-content-primary mb-3">Planes</h3>
             <ul className="flex flex-col gap-2">
               <li><span className="text-sm text-content-secondary">Plan Gratuito — hasta 5 productos</span></li>
-              <li><span className="text-sm text-content-secondary">Plan Básico — $250 MXN/mes</span></li>
+              <li><span className="text-sm text-content-secondary">Plan Básico — $200 MXN/mes</span></li>
             </ul>
           </div>
         </div>

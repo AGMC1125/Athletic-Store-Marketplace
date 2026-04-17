@@ -83,33 +83,6 @@ const useCartStore = create(
       clearStoreItems: (storeId) =>
         set({ items: get().items.filter((i) => i.storeId !== storeId) }),
 
-      // ── Getters derivados ────────────────────────────────────────────────
-      get totalItems() {
-        return get().items.reduce((sum, i) => sum + i.quantity, 0)
-      },
-
-      get totalPrice() {
-        return get().items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
-      },
-
-      // Agrupa items por tienda → útil para crear órdenes separadas
-      get itemsByStore() {
-        const groups = {}
-        for (const item of get().items) {
-          if (!groups[item.storeId]) {
-            groups[item.storeId] = {
-              storeId:   item.storeId,
-              storeName: item.storeName,
-              storeSlug: item.storeSlug,
-              items:     [],
-              subtotal:  0,
-            }
-          }
-          groups[item.storeId].items.push(item)
-          groups[item.storeId].subtotal += item.unitPrice * item.quantity
-        }
-        return Object.values(groups)
-      },
     }),
     {
       name: 'athletic-cart-v1',   // clave en localStorage

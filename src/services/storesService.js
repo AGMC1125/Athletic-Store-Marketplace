@@ -65,7 +65,7 @@ export const storesService = {
     const slug = slugify(storeData.name)
     const { data, error } = await supabase
       .from('stores')
-      .insert({ ...storeData, owner_id: ownerId, slug })
+      .insert({ ...storeData, owner_id: ownerId, slug, is_active: true })
       .select()
       .single()
     if (error) throw error
