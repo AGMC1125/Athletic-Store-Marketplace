@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-brand-black text-content-primary font-sans antialiased;
+    min-height: 100vh;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-brand-black-soft; }
+  ::-webkit-scrollbar-thumb { @apply bg-brand-gold rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-brand-gold-light; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brand-gold rounded; }
+}
+
+@layer components {
+  .container-app { @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8; }
+  .gold-divider { @apply h-px w-full bg-gradient-to-r from-transparent via-brand-gold to-transparent opacity-40; }
+  .text-gold-gradient { background: linear-gradient(135deg, #D4AF37 0%, #F5C518 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .card-base { @apply bg-brand-black-card border border-brand-gold/10 rounded-xl shadow-card transition-all duration-300 hover:border-brand-gold/30 hover:shadow-gold-sm; }
+  
+  /* Gradientes de fondo */
+  .bg-gradient-radial {
+    background: radial-gradient(circle at center, var(--tw-gradient-stops));
+  }
+}
+
+@layer utilities {
+  /* Animaciones personalizadas */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.6s ease-out forwards;
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Delays para animaciones escalonadas */
+  .delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .delay-700 {
+    animation-delay: 700ms;
+  }
+
+  .delay-1000 {
+    animation-delay: 1000ms;
+  }
+
+  /* Sección alternada */
+  .section-alt {
+    @apply bg-gradient-to-b from-transparent via-brand-gold/[0.02] to-transparent;
+  }
+}

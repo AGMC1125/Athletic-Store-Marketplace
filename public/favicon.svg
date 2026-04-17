@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="12" fill="#0A0A0A"/>
+  <!-- Runner silhouette stylized, gold -->
+  <!-- Head -->
+  <circle cx="42" cy="12" r="5" fill="#D4AF37"/>
+  <!-- Body leaning forward -->
+  <path d="M42 17 L32 30 L24 42" stroke="#D4AF37" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Front arm back -->
+  <path d="M36 23 L26 18" stroke="#D4AF37" stroke-width="4" stroke-linecap="round"/>
+  <!-- Back arm forward -->
+  <path d="M36 23 L44 28" stroke="#D4AF37" stroke-width="4" stroke-linecap="round"/>
+  <!-- Front leg forward -->
+  <path d="M32 30 L22 38 L18 50" stroke="#D4AF37" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Back leg back -->
+  <path d="M32 30 L38 42 L46 50" stroke="#D4AF37" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
