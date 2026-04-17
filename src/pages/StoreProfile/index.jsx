@@ -14,7 +14,7 @@ import { formatPrice } from '../../utils/formatters'
 // ── Tarjeta de producto (dentro del perfil de tienda) ─────
 function StoreProductCard({ product }) {
   const thumb = product.image_url
-    ? getOptimizedUrl(product.image_url, { width: 400, height: 400 })
+    ? getOptimizedUrl(product.image_url, { width: 400, crop: 'fit' })
     : null
 
   const CategoryIcon = CATEGORY_ICONS[product.category]
@@ -24,13 +24,13 @@ function StoreProductCard({ product }) {
       to={ROUTES.PRODUCT.replace(':id', product.id)}
       className="card-base overflow-hidden group hover:border-brand-gold/30 transition-all duration-200"
     >
-      <div className="aspect-square overflow-hidden bg-brand-black-soft">
+      <div className="aspect-square bg-brand-black-soft flex items-center justify-center overflow-hidden">
         {thumb
           ? (
             <img
               src={thumb}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-contain p-2 group-hover:brightness-110 transition-all duration-300"
             />
           )
           : (
@@ -44,7 +44,7 @@ function StoreProductCard({ product }) {
         <p className="text-sm font-semibold text-content-primary line-clamp-2 leading-snug mb-2">
           {product.name}
         </p>
-        <Badge variant="secondary" size="sm" className="mb-3 inline-flex items-center gap-1">
+        <Badge variant="gray" size="sm" className="mb-3 inline-flex items-center gap-1">
           {CategoryIcon && <CategoryIcon size={12} />}
           {CATEGORY_LABELS[product.category] ?? product.category}
         </Badge>

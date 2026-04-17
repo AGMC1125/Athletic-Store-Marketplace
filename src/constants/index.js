@@ -71,8 +71,15 @@ export const ROUTES = {
   DASHBOARD_PRODUCTS_NEW: '/dashboard/productos/nuevo',
   DASHBOARD_PRODUCTS_EDIT: '/dashboard/productos/:id/editar',
   DASHBOARD_MEMBERSHIP: '/dashboard/membresia',
-  DASHBOARD_PAYMENT: '/dashboard/metodo-de-pago',
-  DASHBOARD_PROFILE: '/dashboard/perfil',
+  DASHBOARD_PAYMENT:    '/dashboard/metodo-de-pago',
+  DASHBOARD_PROFILE:    '/dashboard/perfil',
+  DASHBOARD_ORDERS:     '/dashboard/ordenes',
+
+  // ── Compras públicas (guest) ───────────────────────────
+  STORES:   '/tiendas',
+  CART:     '/carrito',
+  CHECKOUT: '/checkout',
+  ORDERS:   '/ordenes',
 
   // ── Admin ──────────────────────────────────────────────
   ADMIN: '/admin',

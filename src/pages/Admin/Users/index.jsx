@@ -139,7 +139,7 @@ function AdminUsers() {
                           className="bg-brand-black-card border border-white/10 text-content-secondary text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-gold/50 disabled:opacity-50 cursor-pointer"
                         >
                           <option value={PLANS.FREE}>Plan Gratuito</option>
-                          <option value={PLANS.BASIC}>Plan Básico</option>
+                          <option value={PLANS.PRO}>Plan Pro</option>
                         </select>
                       )}
                     </td>

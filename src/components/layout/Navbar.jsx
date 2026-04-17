@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { Menu, X, ShoppingBag, LogOut, LayoutDashboard } from 'lucide-react'
+import { Menu, X, ShoppingBag, LogOut, LayoutDashboard, ShoppingCart, ClipboardList, Store } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { Button } from '../ui'
 import useAuthStore from '../../store/authStore'
 import { useAuthActions } from '../../hooks/useAuth'
+import useCartStore from '../../store/cartStore'
 import { ROUTES } from '../../constants'
 
 function Navbar() {
@@ -12,6 +13,7 @@ function Navbar() {
   const { isAuthenticated, profile } = useAuthStore()
   const { signOut } = useAuthActions()
   const navigate = useNavigate()
+  const totalItems = useCartStore((s) => s.items.reduce((acc, i) => acc + i.quantity, 0))
 
   // Admins van al panel de administración; propietarios de tienda al dashboard
   const panelRoute = profile?.role === 'admin' ? ROUTES.ADMIN : ROUTES.DASHBOARD
@@ -19,6 +21,8 @@ function Navbar() {
   const navLinks = [
     { to: ROUTES.HOME,    label: 'Inicio' },
     { to: ROUTES.CATALOG, label: 'Catálogo' },
+    { to: ROUTES.STORES,  label: 'Tiendas' },
+    { to: ROUTES.ORDERS,  label: 'Mis Órdenes' },
   ]
 
   async function handleSignOut() {
@@ -75,6 +79,20 @@ function Navbar() {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
+          {/* Carrito */}
+          <button
+            onClick={() => navigate(ROUTES.CART)}
+            className="relative p-2 rounded-xl text-content-secondary hover:text-content-primary hover:bg-white/5 transition-colors"
+            aria-label="Carrito"
+          >
+            <ShoppingCart size={20} />
+            {totalItems > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-brand-gold text-black text-[10px] font-black flex items-center justify-center px-1 leading-none">
+                {totalItems > 99 ? '99+' : totalItems}
+              </span>
+            )}
+          </button>
+
           {isAuthenticated ? (
             <>
               <Button
@@ -102,14 +120,28 @@ function Navbar() {
           )}
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          className="md:hidden p-2 rounded-lg text-content-secondary hover:text-content-primary"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
-        >
-          {menuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        {/* Mobile: carrito + hamburger */}
+        <div className="md:hidden flex items-center gap-1">
+          <button
+            onClick={() => navigate(ROUTES.CART)}
+            className="relative p-2 rounded-xl text-content-secondary hover:text-content-primary transition-colors"
+            aria-label="Carrito"
+          >
+            <ShoppingCart size={20} />
+            {totalItems > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] rounded-full bg-brand-gold text-black text-[9px] font-black flex items-center justify-center px-0.5 leading-none">
+                {totalItems > 99 ? '99+' : totalItems}
+              </span>
+            )}
+          </button>
+          <button
+            className="p-2 rounded-lg text-content-secondary hover:text-content-primary"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+          >
+            {menuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}

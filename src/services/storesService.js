@@ -33,6 +33,19 @@ export const storesService = {
   },
 
   /**
+   * Lista todas las tiendas activas (alias público).
+   */
+  async getPublicStores() {
+    const { data, error } = await supabase
+      .from('stores')
+      .select('id, name, slug, description, logo_url, banner_url, city, state, plan')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return data ?? []
+  },
+
+  /**
    * Lista todas las tiendas activas.
    */
   async getActiveStores() {

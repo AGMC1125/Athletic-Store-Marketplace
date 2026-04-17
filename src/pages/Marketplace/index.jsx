@@ -22,55 +22,72 @@ function useDebounce(value, delay = 400) {
 
 // ── Tarjeta de producto ───────────────────────────────────
 function ProductCard({ product }) {
-  const thumb = product.image_url
-    ? getOptimizedUrl(product.image_url, { width: 400, height: 400 })
+  const rawUrl = Array.isArray(product.image_url)
+    ? product.image_url[0]
+    : product.image_url
+
+  const thumb = rawUrl
+    ? getOptimizedUrl(rawUrl, { width: 400, crop: 'fit' })
     : null
+
+  const discountPct = product.discount_percentage
+  const basePrice   = parseFloat(product.price)
+  const finalPrice  = discountPct ? basePrice * (1 - discountPct / 100) : basePrice
 
   return (
     <Link
       to={ROUTES.PRODUCT.replace(':id', product.id)}
-      className="card-base overflow-hidden group hover:border-brand-gold/30 transition-all duration-200"
+      className="card-base overflow-hidden group hover:border-brand-gold/30 transition-all duration-200 flex flex-col"
     >
-      {/* Imagen */}
-      <div className="aspect-square overflow-hidden bg-brand-black-soft">
-        {thumb
-          ? (
-            <img
-              src={thumb}
-              alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          )
-          : (
-            <div className="w-full h-full flex items-center justify-center text-content-muted">
-              <Package size={36} />
-            </div>
-          )
-        }
+      {/* Imagen — sin recorte, fondo neutro */}
+      <div className="relative bg-brand-black-soft" style={{ aspectRatio: '1 / 1' }}>
+        {thumb ? (
+          <img
+            src={thumb}
+            alt={product.name}
+            className="absolute inset-0 w-full h-full object-contain p-2 group-hover:brightness-110 transition-all duration-300"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-content-muted">
+            <Package size={32} />
+          </div>
+        )}
+        {discountPct > 0 && (
+          <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded-md bg-brand-gold text-black text-[10px] font-bold leading-none">
+            −{discountPct}%
+          </span>
+        )}
       </div>
 
       {/* Info */}
-      <div className="p-4">
-        <p className="text-sm font-semibold text-content-primary line-clamp-2 leading-snug mb-2">
+      <div className="p-3 flex flex-col flex-1">
+        <p className="text-xs sm:text-sm font-semibold text-content-primary line-clamp-2 leading-snug mb-1.5 flex-1">
           {product.name}
         </p>
 
-        <Badge variant="secondary" size="sm" className="mb-3 inline-flex items-center gap-1">
-          {(() => { const Icon = CATEGORY_ICONS[product.category]; return Icon ? <Icon size={11} /> : null })()}
-          {CATEGORY_LABELS[product.category] ?? product.category}
+        <Badge variant="gray" size="sm" className="mb-2 inline-flex items-center gap-1 self-start">
+          {(() => { const Icon = CATEGORY_ICONS[product.category]; return Icon ? <Icon size={10} /> : null })()}
+          <span className="text-[10px]">{CATEGORY_LABELS[product.category] ?? product.category}</span>
         </Badge>
 
-        <div className="flex items-end justify-between">
-          <p className="text-brand-gold font-bold text-base">{formatPrice(product.price)}</p>
+        <div className="flex items-end justify-between gap-1">
+          <div>
+            <p className="text-brand-gold font-bold text-sm sm:text-base leading-none">
+              {formatPrice(finalPrice)}
+            </p>
+            {discountPct > 0 && (
+              <p className="text-[10px] text-content-muted line-through mt-0.5">{formatPrice(basePrice)}</p>
+            )}
+          </div>
           {product.stock > 0
-            ? <span className="text-xs text-state-success">En existencia</span>
-            : <span className="text-xs text-state-error">Sin stock</span>
+            ? <span className="text-[10px] sm:text-xs text-state-success shrink-0">En existencia</span>
+            : <span className="text-[10px] sm:text-xs text-state-error shrink-0">Sin stock</span>
           }
         </div>
 
         {product.stores && (
-          <p className="text-xs text-content-muted mt-2 truncate flex items-center gap-1">
-            <Store size={11} className="shrink-0" />
+          <p className="text-[10px] text-content-muted mt-1.5 truncate flex items-center gap-1">
+            <Store size={10} className="shrink-0" />
             {product.stores.name}
             {product.stores.city ? ` · ${product.stores.city}` : ''}
           </p>
@@ -171,32 +188,32 @@ function MarketplacePage() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        {/* Búsqueda */}
-        <div className="relative flex-1">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
+      <div className="flex flex-col gap-3 mb-8">
+        {/* Búsqueda — fila completa */}
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" />
           <input
             type="text"
             placeholder="Buscar productos o tiendas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-white/10 bg-brand-black-soft text-sm text-content-primary placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-white/10 bg-brand-black-soft text-sm text-content-primary placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-brand-gold/50 focus:border-brand-gold"
           />
         </div>
 
-        {/* Categorías */}
-        <div className="flex gap-2 flex-wrap">
+        {/* Categorías — scroll horizontal en móvil */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.value}
               onClick={() => handleCategory(cat.value)}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 category === cat.value
-                  ? 'bg-brand-gold text-content-inverse'
+                  ? 'bg-brand-gold text-black'
                   : 'bg-brand-black-soft border border-white/10 text-content-secondary hover:border-brand-gold/40 hover:text-content-primary'
               }`}
             >
-              {cat.Icon && <cat.Icon size={14} />}
+              {cat.Icon && <cat.Icon size={13} />}
               {cat.label}
             </button>
           ))}
@@ -205,7 +222,7 @@ function MarketplacePage() {
 
       {/* Skeleton — primera carga */}
       {isFirstLoad && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {Array.from({ length: 8 }).map((_, i) => <ProductSkeleton key={i} />)}
         </div>
       )}
@@ -237,7 +254,7 @@ function MarketplacePage() {
           <p className="text-xs text-content-muted mb-4">
             {allProducts.length} producto{allProducts.length !== 1 ? 's' : ''} encontrado{allProducts.length !== 1 ? 's' : ''}
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {allProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

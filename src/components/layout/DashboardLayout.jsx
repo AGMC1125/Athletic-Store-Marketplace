@@ -3,7 +3,8 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   LayoutDashboard, Store, Package, CreditCard, User,
-  LogOut, Menu, X, ShoppingBag, AlertTriangle, Landmark, ExternalLink
+  LogOut, Menu, X, ShoppingBag, AlertTriangle, Landmark, ExternalLink,
+  ClipboardList,
 } from 'lucide-react'
 import { cn } from '../../utils/cn'
 import { ToastContainer, Spinner, Modal, Button } from '../ui'
@@ -33,6 +34,7 @@ function Sidebar({ open, onClose, onSignOutRequest }) {
   const NAV_ITEMS = [
     { to: ROUTES.DASHBOARD,            icon: LayoutDashboard, label: 'Resumen' },
     { to: ROUTES.DASHBOARD_STORE,      icon: Store,           label: 'Mi Tienda' },
+    { to: ROUTES.DASHBOARD_ORDERS,     icon: ClipboardList,   label: 'Órdenes' },
     {
       to:    ROUTES.DASHBOARD_PRODUCTS,
       icon:  Package,

@@ -275,7 +275,7 @@ function HeroSection() {
       />
 
       {/* Content */}
-      <div className="relative container-app py-20 md:py-28 text-center" style={{ zIndex: 2 }}>
+      <div className="relative container-app py-20 md:py-1 text-center" style={{ zIndex: 2 }}>
 
         {/* Badge */}
         <div
@@ -284,7 +284,7 @@ function HeroSection() {
             transform: loaded ? 'none' : 'translateY(16px)',
             transition: 'opacity 0.6s ease 0ms, transform 0.6s ease 0ms',
           }}
-          className="inline-flex items-center gap-2 mb-10 px-5 py-2 rounded-full border border-brand-gold/20 bg-brand-gold/5 backdrop-blur-sm"
+          className="inline-flex items-center gap-2 mb-8 px-5 py-2 rounded-full border border-brand-gold/20 bg-brand-gold/5 backdrop-blur-sm"
         >
           <Sparkles size={13} className="text-brand-gold" />
           <span className="text-xs font-semibold text-brand-gold uppercase tracking-widest">
@@ -300,12 +300,19 @@ function HeroSection() {
             transform: loaded ? 'none' : 'translateY(24px)',
             transition: 'opacity 0.7s ease 120ms, transform 0.7s ease 120ms',
           }}
-          className="text-5xl sm:text-7xl md:text-8xl font-black leading-[1.05] mb-8"
+          className="font-black mb-8"
         >
-          <span className="block text-content-primary mb-3">Transforma tu tienda</span>
+          <span
+            className="block text-content-primary"
+            style={{ fontSize: 'clamp(2.4rem, 7vw, 5.5rem)', lineHeight: 1.08, marginBottom: '0.25em' }}
+          >
+            Transforma tu tienda
+          </span>
           <span
             className="block"
             style={{
+              fontSize: 'clamp(2.4rem, 7vw, 5.5rem)',
+              lineHeight: 1.08,
               background: 'linear-gradient(135deg, #D4AF37 0%, #F5D76E 40%, #B8960C 80%, #D4AF37 100%)',
               backgroundSize: '200% auto',
               WebkitBackgroundClip: 'text',
@@ -463,6 +470,13 @@ function StatsSection() {
 // ─────────────────────────────────────────────────────────────
 // CATEGORÍAS
 // ─────────────────────────────────────────────────────────────
+const CATEGORY_IMAGES = {
+  footwear:           '/categories/calzado.png',
+  socks:              '/categories/calcetas.png',
+  shin_guards:        '/categories/espinilleras.png',
+  goalkeeper_gloves:  '/categories/guantes.png',
+}
+
 function CategoriesSection() {
   const navigate = useNavigate()
   const [titleRef, titleIn] = useInView()
@@ -470,7 +484,7 @@ function CategoriesSection() {
   const categories = Object.entries(CATEGORY_LABELS).map(([value, label]) => ({
     value,
     label,
-    Icon: CATEGORY_ICONS[value],
+    image: CATEGORY_IMAGES[value],
   }))
 
   return (
@@ -482,7 +496,7 @@ function CategoriesSection() {
         {/* Título */}
         <div
           ref={titleRef}
-          className="text-center mb-8"
+          className="text-center mb-10"
           style={{
             opacity: titleIn ? 1 : 0,
             transform: titleIn ? 'none' : 'translateY(30px)',
@@ -510,29 +524,42 @@ function CategoriesSection() {
           </p>
         </div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        {/* Cards con imagen */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           {categories.map((cat, i) => (
             <Reveal key={cat.value} delay={i * 80} direction="up">
               <button
                 onClick={() => navigate(`${ROUTES.CATALOG}?categoria=${cat.value}`)}
-                className="w-full card-base p-8 flex flex-col items-center gap-5 group hover:border-brand-gold/50 transition-all duration-300 relative overflow-hidden"
+                className="w-full group relative rounded-2xl overflow-hidden border border-white/8 hover:border-brand-gold/40 transition-all duration-300 focus:outline-none"
+                style={{ aspectRatio: '3/4' }}
               >
-                {/* Shine on hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.06) 0%, transparent 60%)' }} />
+                {/* Imagen de fondo */}
+                {cat.image ? (
+                  <img
+                    src={cat.image}
+                    alt={cat.label}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-brand-black-card" />
+                )}
 
-                {/* Ring glow */}
-                <div className="relative">
-                  <div className="absolute inset-0 bg-brand-gold/30 blur-2xl scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full" />
-                  <div className="relative p-5 rounded-2xl bg-brand-gold/8 border border-brand-gold/10 group-hover:bg-brand-gold/15 group-hover:border-brand-gold/30 group-hover:scale-110 transition-all duration-300">
-                    {cat.Icon && <cat.Icon size={36} className="text-brand-gold" />}
-                  </div>
+                {/* Overlay gradiente oscuro en la parte inferior */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                {/* Gold border glow on hover */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ boxShadow: 'inset 0 0 0 2px rgba(212,175,55,0.5)' }} />
+
+                {/* Label */}
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="text-sm md:text-base font-bold text-white group-hover:text-brand-gold transition-colors leading-tight">
+                    {cat.label}
+                  </p>
+                  <p className="text-xs text-white/60 mt-0.5 group-hover:text-brand-gold/70 transition-colors">
+                    Ver productos →
+                  </p>
                 </div>
-
-                <p className="text-sm md:text-base font-semibold text-content-secondary group-hover:text-brand-gold transition-colors text-center relative z-10">
-                  {cat.label}
-                </p>
               </button>
             </Reveal>
           ))}
@@ -769,49 +796,32 @@ function PlansSection() {
       period: 'Para siempre',
       description: 'Perfecto para comenzar tu presencia digital',
       features: [
-        { text: 'Hasta 5 productos', highlight: false },
-        { text: 'Perfil de tienda completo', highlight: false },
-        { text: 'Contacto directo con clientes', highlight: false },
+        { text: 'Hasta 5 productos publicados', highlight: false },
+        { text: 'Perfil público de tienda', highlight: false },
+        { text: 'Contacto directo por WhatsApp', highlight: false },
         { text: 'Visible en catálogo público', highlight: false },
-        { text: 'Gestión de inventario', highlight: false },
+        { text: '3 fotos por variante de color', highlight: false },
       ],
       cta: 'Empezar gratis',
       popular: false,
       disabled: false,
     },
     {
-      name: 'Básico',
-      badge: 'Más popular',
-      price: '250',
+      name: 'Pro',
+      badge: 'Recomendado',
+      price: '299',
       period: 'MXN / mes',
-      description: 'Para tiendas que quieren crecer rápido',
+      description: 'Para tiendas que quieren crecer y destacar',
       features: [
-        { text: 'Hasta 50 productos', highlight: true },
+        { text: 'Hasta 50 productos publicados', highlight: true },
         { text: 'Todo del plan gratuito', highlight: false },
-        { text: 'Destacado en búsquedas', highlight: true },
-        { text: 'Soporte prioritario', highlight: true },
-        { text: 'Analytics básicos', highlight: true },
+        { text: 'Badge de tienda verificada', highlight: true },
+        { text: 'Mayor visibilidad en el catálogo', highlight: true },
+        { text: 'Campaña en Instagram, Facebook y TikTok', highlight: true },
       ],
-      cta: 'Comenzar ahora',
+      cta: 'Activar Plan Pro',
       popular: true,
       disabled: false,
-    },
-    {
-      name: 'Premium',
-      badge: 'Próximamente',
-      price: '???',
-      period: 'MXN / mes',
-      description: 'Máximo potencial para tu negocio',
-      features: [
-        { text: 'Productos ilimitados', highlight: true },
-        { text: 'Todo del plan básico', highlight: false },
-        { text: 'Perfil verificado', highlight: true },
-        { text: 'Soporte 24/7', highlight: true },
-        { text: 'Analytics avanzados', highlight: true },
-      ],
-      cta: 'Próximamente',
-      popular: false,
-      disabled: true,
     },
   ]
 
@@ -846,7 +856,7 @@ function PlansSection() {
           </p>
         </Reveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto items-center">
           {plans.map((plan, i) => (
             <Reveal key={plan.name} delay={i * 100} direction="up">
               <div

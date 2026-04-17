@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft, Package, Store, MapPin, Phone,
   MessageCircle, Tag, AlertTriangle, Landmark,
   ChevronLeft, ChevronRight, CheckCircle, AlertCircle,
-  BadgeCheck, ExternalLink,
+  BadgeCheck, ExternalLink, ShoppingCart,
 } from 'lucide-react'
 import { Badge, Spinner } from '../../components/ui'
 import { productsService } from '../../services/productsService'
@@ -13,6 +13,7 @@ import { bankAccountsService } from '../../services/bankAccountsService'
 import { getOptimizedUrl } from '../../lib/cloudinary'
 import { ROUTES, CATEGORY_LABELS, CATEGORY_ICONS, VARIANT_TEMPLATES } from '../../constants'
 import { formatPrice } from '../../utils/formatters'
+import useCartStore from '../../store/cartStore'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -125,7 +126,7 @@ function ImageGallery({ images, productName }) {
 
   if (!images.length) {
     return (
-      <div className="aspect-[4/5] rounded-2xl bg-brand-black-soft border border-white/5 flex items-center justify-center text-content-muted">
+      <div className="aspect-square rounded-2xl bg-brand-black-soft border border-white/5 flex items-center justify-center text-content-muted">
         <Package size={64} />
       </div>
     )
@@ -158,7 +159,7 @@ function ImageGallery({ images, productName }) {
 
       {/* Imagen principal */}
       <div className="flex-1 flex flex-col gap-2.5">
-        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-brand-black-soft border border-white/5 group">
+        <div className="relative aspect-square rounded-2xl overflow-hidden bg-brand-black-soft border border-white/5 group">
           <img
             key={main}
             src={main}
@@ -475,10 +476,13 @@ function Sep() {
 // ── Página principal ──────────────────────────────────────────────────────────
 
 function ProductDetailPage() {
-  const { id } = useParams()
+  const { id }     = useParams()
+  const navigate   = useNavigate()
+  const addItem    = useCartStore((s) => s.addItem)
 
-  const [selectedColor, setSelectedColor] = useState(null)
-  const [selectedSize,  setSelectedSize]  = useState(null)
+  const [selectedColor,   setSelectedColor]   = useState(null)
+  const [selectedSize,    setSelectedSize]     = useState(null)
+  const [addedToCart,     setAddedToCart]      = useState(false)
 
   const handleColorSelect = (color) => {
     setSelectedColor(color)
@@ -525,17 +529,17 @@ function ProductDetailPage() {
     if (!product) return []
     if (selectedVariant) {
       return (selectedVariant.images ?? []).map((url) =>
-        getOptimizedUrl(url, { width: 800, height: 800 })
+        getOptimizedUrl(url, { width: 900, crop: 'fit' })
       )
     }
     const allVariantImages = variants.flatMap((v) => v.images ?? [])
     if (allVariantImages.length > 0) {
-      return allVariantImages.map((url) => getOptimizedUrl(url, { width: 800, height: 800 }))
+      return allVariantImages.map((url) => getOptimizedUrl(url, { width: 900, crop: 'fit' }))
     }
     const raw = Array.isArray(product.image_url)
       ? product.image_url
       : product.image_url ? [product.image_url] : []
-    return raw.map((url) => getOptimizedUrl(url, { width: 800, height: 800 }))
+    return raw.map((url) => getOptimizedUrl(url, { width: 900, crop: 'fit' }))
   }, [product, selectedVariant, variants])
 
   const tpl            = VARIANT_TEMPLATES[product?.category] ?? null
@@ -556,6 +560,29 @@ function ProductDetailPage() {
 
   // CTA disabled if has variants but no complete selection
   const ctaDisabled = hasVariants && (!selectedColor || !selectedSize)
+
+  // ── Agregar al carrito ────────────────────────────────────────────────────
+  function handleAddToCart() {
+    if (ctaDisabled || !product) return
+    const store = product.stores
+    addItem({
+      productId:        product.id,
+      storeId:          store?.id,
+      storeName:        store?.name,
+      storeSlug:        store?.slug,
+      name:             product.name,
+      category:         product.category,
+      imageUrl:         galleryImages[0] ?? null,
+      basePrice:        basePrice,
+      discountPct:      discountPercentage ?? 0,
+      unitPrice:        finalPriceNum,
+      selectedColor:    selectedColor ?? null,
+      selectedColorHex: selectedVariant?.colorHex ?? null,
+      selectedSize:     selectedSize ?? null,
+    })
+    setAddedToCart(true)
+    setTimeout(() => setAddedToCart(false), 2500)
+  }
 
   // ── Early returns ─────────────────────────────────────────────────────────
 
@@ -692,19 +719,64 @@ function ProductDetailPage() {
             </div>
           )}
 
-          {/* ── 3. CTA principal ── */}
-          {store && (
-            <WhatsAppCTA
-              store={store}
-              productName={product.name}
-              selectedColor={selectedColor}
-              selectedSize={selectedSize}
+          {/* ── 3. CTAs ── */}
+          <div className="flex flex-col gap-3">
+            {/* Agregar al carrito */}
+            <button
+              onClick={handleAddToCart}
               disabled={ctaDisabled}
-            />
-          )}
+              className={`flex items-center justify-center gap-2.5 w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all active:scale-[0.98] border ${
+                ctaDisabled
+                  ? 'border-white/8 text-content-muted bg-white/[0.03] cursor-not-allowed'
+                  : addedToCart
+                    ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10 cursor-default'
+                    : 'border-brand-gold/35 text-brand-gold bg-brand-gold/8 hover:bg-brand-gold/15 hover:border-brand-gold/55'
+              }`}
+            >
+              {addedToCart ? (
+                <>
+                  <CheckCircle size={18} />
+                  Agregado al carrito
+                </>
+              ) : (
+                <>
+                  <ShoppingCart size={18} />
+                  Agregar al carrito
+                </>
+              )}
+            </button>
 
-          {/* Teléfono alternativo */}
-          {store?.phone && <PhoneButton phone={store.phone} />}
+            {/* WhatsApp */}
+            {store && (
+              <WhatsAppCTA
+                store={store}
+                productName={product.name}
+                selectedColor={selectedColor}
+                selectedSize={selectedSize}
+                disabled={ctaDisabled}
+              />
+            )}
+          </div>
+
+          {/* Ver carrito / Teléfono alternativo */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => navigate(ROUTES.CART)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-white/10 text-content-muted text-xs font-medium hover:border-white/20 hover:text-content-secondary transition-all"
+            >
+              <ShoppingCart size={13} />
+              Ver carrito
+            </button>
+            {store?.phone && (
+              <a
+                href={`tel:${store.phone}`}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl border border-white/10 text-content-secondary text-xs font-medium hover:border-white/20 hover:text-content-primary active:scale-[0.98] transition-all"
+              >
+                <Phone size={13} />
+                {store.phone}
+              </a>
+            )}
+          </div>
 
           <Sep />
 
